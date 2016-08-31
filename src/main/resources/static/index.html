@@ -1,0 +1,232 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Shopping Cart</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	
+	<!-- Latest compiled JavaScript -->
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body ng-app="demoApp">
+
+<div class="header">
+    <div class="navbar navbar-default" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand">Shopping Cart<span class="glyphicon icon-shopping-bag"></span></a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div style="float: left">
+    <a>
+        <h2>
+            <div class="total">
+                <span class="simpleCart_total">Shopping Cart <img src="app/images/shoppingcart.png" alt=""> </span>
+            </div>
+        </h2>
+    </a>
+</div>
+
+<div style="float: right;padding-top: 10px">
+    <div id="quantity"></div>
+    <div id="amount"></div>
+</div>
+
+
+<div class="panel-body">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Product</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody id="tbody">
+
+        </tbody>
+    </table>
+</div>
+
+<div class="panel-body">
+    <table class="table table-hover" >
+        <thead>
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Amount</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody id="cart">
+
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+<div class="footer">
+    <div class="container">
+        <p><span class="glyphicon glyphicon-eye-open"></span> Design by Guilherme Carvalho</p>
+    </div>
+</div>
+
+    <script src="app/js/jquery-3.1.0.min.js"></script>
+    <script type="text/javascript">
+        
+		$(document).ready(function() {
+	        $.ajax({
+				type : 'GET',
+				url : '/shoppingcart/products',
+				contentType : 'application/json',
+				success : function(data, textStatus, jqXHR) {
+                    var text = "";
+                    for (i = 0; i < data.length; i++) { 
+                        text += "<tr>"+
+                                    "<td><img src='"+data[i].image+"' width='35px'/></td>"+
+                                    "<td>"+data[i].name+"</td>" +
+                                    "<td>"+data[i].price+"</td>" +
+                                    "<td>"+
+                                        "<input id='"+data[i].id+"' class='form-control' name='stocks' type='number' min='1' step='1' required='required' style='width: 75px'/>"+
+                                    "</td>"+
+                                    "<td>"+
+	                                    "<button type='submit' class='btn btn-primary' onclick='updateCart(\""+data[i].id+"\")'>Update <span"+
+	                                        "class='glyphicon glyphicon-cog' aria-hidden='true'></span></button>"+
+                                    "</td>"+
+                                "</tr>";
+                    }
+                    $("#tbody").html(text);
+                    $.ajax({
+        				type : 'GET',
+        				url : '/shoppingcart/shoppingcart',
+        				contentType : 'application/json',
+        				success : function(data, textStatus, jqXHR) {
+        					debugger;
+        					$("#quantity").text("Quantity: " + data.items.length);
+        					$("#amount").text("$"+data.amount);
+        					
+        					var text = "";
+                            for (i = 0; i < data.items.length; i++) { 
+                                text += "<tr>"+
+                                            "<td>"+data.items[i].product.name+"</td>"+
+                                            "<td>"+data.items[i].product.price+"</td>" +
+                                            "<td>"+data.items[i].quantity+"</td>" +
+                                            "<td>"+data.items[i].amount+"</td>" +
+                                            "<td>"+
+                                            "<button type='submit' class='btn btn-danger' onclick='deleteCart(\""+data.items[i].id+"\")'>Delete <span"+
+                                                "class='glyphicon glyphicon-trash' aria-hidden='true'></span></button>"+
+                                            "</td>"+
+                                        "</tr>";
+                            }
+                            $("#cart").html(text);
+        					
+        				},
+        				error : function(jqXHR, textStatus, errorThrowns) {
+                        }
+        			});
+				},
+				error : function(jqXHR, textStatus, errorThrowns) {
+					alert("Deu ruim");
+                }
+			});
+	        
+	    });
+		
+        function updateCart(id){
+            if($("#"+id).val()!=""){
+	            $.ajax({
+					type : 'POST',
+					url : '/shoppingcart/shoppingcart/items?product_id='+id+"&quantity="+$("#"+id).val(),
+					contentType : 'application/json',
+					success : function(data, textStatus, jqXHR) {
+						alert('Produto Adicionado com sucesso');
+						$.ajax({
+	        				type : 'GET',
+	        				url : '/shoppingcart/shoppingcart',
+	        				contentType : 'application/json',
+	        				success : function(data, textStatus, jqXHR) {
+	        					debugger;
+	        					$("#quantity").text("Quantity: " + data.items.length);
+	        					$("#amount").text("$"+data.amount);
+	        					
+	        					var text = "";
+	                            for (i = 0; i < data.items.length; i++) { 
+	                                text += "<tr>"+
+	                                            "<td>"+data.items[i].product.name+"</td>"+
+	                                            "<td>"+data.items[i].product.price+"</td>" +
+	                                            "<td>"+data.items[i].quantity+"</td>" +
+	                                            "<td>"+data.items[i].amount+"</td>" +
+	                                            "<td>"+
+	                                            "<button type='submit' class='btn btn-danger' onclick='deleteCart(\""+data.items[i].id+"\")'>Delete <span"+
+	                                                "class='glyphicon glyphicon-trash' aria-hidden='true'></span></button>"+
+	                                            "</td>"+
+	                                        "</tr>";
+	                            }
+	                            $("#cart").html(text);
+	        				},
+	        				error : function(jqXHR, textStatus, errorThrowns) {
+	                        }
+	        			});
+					},
+					error : function(jqXHR, textStatus, errorThrowns) {
+	                }
+				});    
+            }
+        }
+		
+        function deleteCart(id){
+            $.ajax({
+				type : 'DELETE',
+				url : '/shoppingcart/shoppingcart/items/'+id,
+				contentType : 'application/json',
+				success : function(data, textStatus, jqXHR) {
+					alert('Produto Removido com sucesso');
+					$.ajax({
+        				type : 'GET',
+        				url : '/shoppingcart/shoppingcart',
+        				contentType : 'application/json',
+        				success : function(data, textStatus, jqXHR) {
+        					debugger;
+        					$("#quantity").text("Quantity: " + data.items.length);
+        					$("#amount").text("$"+data.amount);
+        					
+        					var text = "";
+                            for (i = 0; i < data.items.length; i++) { 
+                                text += "<tr>"+
+                                            "<td>"+data.items[i].product.name+"</td>"+
+                                            "<td>"+data.items[i].product.price+"</td>" +
+                                            "<td>"+data.items[i].quantity+"</td>" +
+                                            "<td>"+data.items[i].amount+"</td>" +
+                                            "<td>"+
+                                            "<button type='submit' class='btn btn-danger' onclick='deleteCart(\""+data.items[i].id+"\")'>Delete <span"+
+                                                "class='glyphicon glyphicon-trash' aria-hidden='true'></span></button>"+
+                                            "</td>"+
+                                        "</tr>";
+                            }
+                            $("#cart").html(text);
+        				},
+        				error : function(jqXHR, textStatus, errorThrowns) {
+                        }
+        			});
+				},
+				error : function(jqXHR, textStatus, errorThrowns) {
+                }
+			});
+        }
+    </script>
+</body>
+</html>
